@@ -1,4 +1,4 @@
-package control;
+package controller;
 
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -11,9 +11,9 @@ import server.*;
 /**
  * @author Mateus Gomes, Gabriel Schenkel e Cristiano A. Flores
  */
-public class ControlBar extends ControlPadrao {
+public class ControllerBar extends ControllerPadrao {
 
-    public ControlBar(JDesktopPane jDesktopPane, JInternalFrame jInternalFrame) {
+    public ControllerBar(JDesktopPane jDesktopPane, JInternalFrame jInternalFrame) {
         super(jDesktopPane, jInternalFrame);
     }
     
@@ -31,7 +31,7 @@ public class ControlBar extends ControlPadrao {
     }
     
     /**
-     * Inicia o servidor do Bar
+     * inicia o servidor do Bar
      */
     public void iniciaServidor() {
         try {
@@ -43,6 +43,12 @@ public class ControlBar extends ControlPadrao {
         } catch (Exception ex) {
             ex.printStackTrace();
         }
+    }
+    
+    /**
+     * inicia os processos do bar
+     */
+    public void iniciaBar() {
         
     }
     

@@ -1,14 +1,24 @@
 package view;
 
+import assets.Cliente;
+import assets.Garcom;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
+import javax.swing.JOptionPane;
+import server.Bar;
+import server.InterfaceRemotaBar;
+
 /**
  *
  * @authores Mateus Gomes, Gabriel Schenkel e Cristiano A. Flores
+ * Singleton aplicado para a criação do objeto da classe
  */
 public class ViewBar extends javax.swing.JInternalFrame {
     
-    private static ViewBar TelaAplicacao;
-
-    public ViewBar() {
+    private static ViewBar telaAplicacao;
+    
+    private ViewBar() {
         initComponents();
     }
     
@@ -18,10 +28,25 @@ public class ViewBar extends javax.swing.JInternalFrame {
      * @return - retorna uma nova instancia caso a tela não ter sido aberta
      */
     public static ViewBar getInstanciaAplicacao() {
-        if (TelaAplicacao == null) {
-            TelaAplicacao = new ViewBar();
+        if (telaAplicacao == null) {
+            telaAplicacao = new ViewBar();
         }
-        return TelaAplicacao;
+        return telaAplicacao;
+    }
+    
+    /**
+     * inicia o servidor do Bar
+     */
+    private void iniciaServidor() {
+        try {
+            Bar server = new Bar();
+            InterfaceRemotaBar stub = (InterfaceRemotaBar) UnicastRemoteObject.exportObject(server, 8000);
+            Registry registry = LocateRegistry.createRegistry(8000);
+            registry.bind("Servidor do Bar", stub);
+            JOptionPane.showMessageDialog(null, "Servidor iniciado");
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -30,11 +55,11 @@ public class ViewBar extends javax.swing.JInternalFrame {
 
         jPanel1 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
-        jTextField1 = new javax.swing.JTextField();
+        inputNroBarmans = new javax.swing.JTextField();
         jLabel2 = new javax.swing.JLabel();
-        jTextField2 = new javax.swing.JTextField();
+        inputNroGarcons = new javax.swing.JTextField();
         jLabel3 = new javax.swing.JLabel();
-        jTextField3 = new javax.swing.JTextField();
+        inputNroClientes = new javax.swing.JTextField();
         jButton2 = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         jTable1 = new javax.swing.JTable();
@@ -49,6 +74,11 @@ public class ViewBar extends javax.swing.JInternalFrame {
         jLabel3.setText("Nº de barmans");
 
         jButton2.setText("Começar");
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
 
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -89,9 +119,9 @@ public class ViewBar extends javax.swing.JInternalFrame {
                             .addComponent(jLabel3))
                         .addGap(26, 26, 26)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(jTextField3)
-                            .addComponent(jTextField1)
-                            .addComponent(jTextField2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                            .addComponent(inputNroClientes)
+                            .addComponent(inputNroBarmans)
+                            .addComponent(inputNroGarcons, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)))
                     .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 171, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(64, 64, 64)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 574, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -105,15 +135,15 @@ public class ViewBar extends javax.swing.JInternalFrame {
                         .addGap(72, 72, 72)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(jLabel1)
-                            .addComponent(jTextField3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(inputNroClientes, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGap(62, 62, 62)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(jLabel2)
-                            .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(inputNroGarcons, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGap(60, 60, 60)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(jLabel3)
-                            .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(inputNroBarmans, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGap(81, 81, 81)
                         .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 74, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(jPanel1Layout.createSequentialGroup()
@@ -136,8 +166,22 @@ public class ViewBar extends javax.swing.JInternalFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+        this.iniciaServidor();
+        
+        Garcom garcom = new Garcom();
+        Thread cliente1 = new Thread(new Cliente(garcom));
+        Thread cliente2 = new Thread(new Cliente(garcom));
+        
+        cliente1.start();
+        cliente2.start();
+    }//GEN-LAST:event_jButton2ActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JTextField inputNroBarmans;
+    private javax.swing.JTextField inputNroClientes;
+    private javax.swing.JTextField inputNroGarcons;
     private javax.swing.JButton jButton2;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
@@ -145,8 +189,5 @@ public class ViewBar extends javax.swing.JInternalFrame {
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTable jTable1;
-    private javax.swing.JTextField jTextField1;
-    private javax.swing.JTextField jTextField2;
-    private javax.swing.JTextField jTextField3;
     // End of variables declaration//GEN-END:variables
 }

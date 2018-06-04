@@ -1,4 +1,4 @@
-package control;
+package controller;
 
 import javax.swing.JDesktopPane;
 import javax.swing.JInternalFrame;
@@ -6,12 +6,12 @@ import javax.swing.JInternalFrame;
 /**
  * @author Mateus Gomes, Gabriel Schenkel e Cristiano A. Flores
  */
-public abstract class ControlPadrao {
+public abstract class ControllerPadrao {
     
     protected static JDesktopPane viewPrincipal;
     protected JInternalFrame view;
 
-    public ControlPadrao(JDesktopPane viewPrincipal, JInternalFrame view) {
+    public ControllerPadrao(JDesktopPane viewPrincipal, JInternalFrame view) {
         this.viewPrincipal = viewPrincipal;
         this.view = view;
     }

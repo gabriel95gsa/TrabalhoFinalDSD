@@ -1,7 +1,7 @@
 package view;
 
-import control.ControlBar;
-import control.ControlPadrao;
+import controller.ControllerBar;
+import controller.ControllerPadrao;
 import javax.swing.JOptionPane;
 
 /**
@@ -10,13 +10,12 @@ import javax.swing.JOptionPane;
  */
 public class ViewPrincipal extends javax.swing.JFrame {
     
-    ControlBar control;
     ViewBar viewBar;
 
     public ViewPrincipal() {
         initComponents();
         setExtendedState(MAXIMIZED_BOTH);
-        this.control = new ControlBar(jDesktopPane1, viewBar.getInstanciaAplicacao());
+        this.viewBar = ViewBar.getInstanciaAplicacao();
     }
 
     @SuppressWarnings("unchecked")
@@ -109,8 +108,15 @@ public class ViewPrincipal extends javax.swing.JFrame {
     }//GEN-LAST:event_jMenuItem3ActionPerformed
 
     private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
-        this.control.abrirJanela();
-        this.control.iniciaServidor();
+        if (this.viewBar.isVisible()) {
+            this.viewBar.toFront();
+            this.viewBar.requestFocus();
+        } else {
+            jDesktopPane1.add(this.viewBar);
+            this.viewBar.setLocation((this.getWidth() / 2) - (this.viewBar.getWidth() / 2),
+                                       (this.getHeight()/ 2) - (this.viewBar.getHeight() / 2));
+            this.viewBar.setVisible(true);
+        }
     }//GEN-LAST:event_jMenuItem1ActionPerformed
 
     /**
