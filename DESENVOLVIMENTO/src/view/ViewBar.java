@@ -1,11 +1,15 @@
 package view;
 
+import assets.Bartender;
 import assets.Cliente;
 import assets.Garcom;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
 import server.Bar;
 import server.InterfaceRemotaBar;
 
@@ -55,14 +59,14 @@ public class ViewBar extends javax.swing.JInternalFrame {
 
         jPanel1 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
-        inputNroBarmans = new javax.swing.JTextField();
+        inputNroBartenders = new javax.swing.JTextField();
         jLabel2 = new javax.swing.JLabel();
         inputNroGarcons = new javax.swing.JTextField();
         jLabel3 = new javax.swing.JLabel();
         inputNroClientes = new javax.swing.JTextField();
         jButton2 = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
-        jTable1 = new javax.swing.JTable();
+        tabelaLogs = new javax.swing.JTable();
 
         setClosable(true);
         setTitle("Bar");
@@ -71,7 +75,7 @@ public class ViewBar extends javax.swing.JInternalFrame {
 
         jLabel2.setText("Nº de garçons");
 
-        jLabel3.setText("Nº de barmans");
+        jLabel3.setText("Nº de bartenders");
 
         jButton2.setText("Começar");
         jButton2.addActionListener(new java.awt.event.ActionListener() {
@@ -80,7 +84,7 @@ public class ViewBar extends javax.swing.JInternalFrame {
             }
         });
 
-        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+        tabelaLogs.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
 
             },
@@ -103,7 +107,7 @@ public class ViewBar extends javax.swing.JInternalFrame {
                 return canEdit [columnIndex];
             }
         });
-        jScrollPane1.setViewportView(jTable1);
+        jScrollPane1.setViewportView(tabelaLogs);
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -120,7 +124,7 @@ public class ViewBar extends javax.swing.JInternalFrame {
                         .addGap(26, 26, 26)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(inputNroClientes)
-                            .addComponent(inputNroBarmans)
+                            .addComponent(inputNroBartenders)
                             .addComponent(inputNroGarcons, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)))
                     .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 171, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(64, 64, 64)
@@ -143,7 +147,7 @@ public class ViewBar extends javax.swing.JInternalFrame {
                         .addGap(60, 60, 60)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(jLabel3)
-                            .addComponent(inputNroBarmans, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(inputNroBartenders, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGap(81, 81, 81)
                         .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 74, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(jPanel1Layout.createSequentialGroup()
@@ -167,19 +171,40 @@ public class ViewBar extends javax.swing.JInternalFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        this.iniciaServidor();
+        if (this.inputNroClientes.getText().equals("")) {
+            JOptionPane.showMessageDialog(rootPane, "Informe o número de clientes");
+            return;
+        }
+        if (this.inputNroGarcons.getText().equals("")) {
+            JOptionPane.showMessageDialog(rootPane, "Informe o número de garçons");
+            return;
+        }
+        if (this.inputNroBartenders.getText().equals("")) {
+            JOptionPane.showMessageDialog(rootPane, "Informe o número de bartenders");
+            return;
+        }
         
-        Garcom garcom = new Garcom();
-        Thread cliente1 = new Thread(new Cliente(garcom));
-        Thread cliente2 = new Thread(new Cliente(garcom));
+        // cria lista de bartenders de acordo com o informado no input
+        List<Bartender> bartenders = new ArrayList<>();
+        for (int i = 0; i < Integer.parseInt(this.inputNroBartenders.getText()); i++) {
+            bartenders.add(new Bartender("Bartender " + i, (DefaultTableModel)tabelaLogs.getModel()));
+        }
+        // cria lista de garçons de acordo com o informado no input
+        List<Garcom> garcons = new ArrayList<>();
+        for (int i = 0; i < Integer.parseInt(this.inputNroGarcons.getText()); i++) {
+            garcons.add(new Garcom(bartenders, "Garçom " + i, (DefaultTableModel)tabelaLogs.getModel()));
+        }
+        // cria lista de clientes de acordo com o informado no input
+        for (int i = 1; i <= Integer.parseInt(this.inputNroClientes.getText()); i++) {
+            Thread cliente = new Thread(new Cliente(garcons, (DefaultTableModel)tabelaLogs.getModel()), "Cliente" + i);
+            cliente.start();
+        }
         
-        cliente1.start();
-        cliente2.start();
     }//GEN-LAST:event_jButton2ActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JTextField inputNroBarmans;
+    private javax.swing.JTextField inputNroBartenders;
     private javax.swing.JTextField inputNroClientes;
     private javax.swing.JTextField inputNroGarcons;
     private javax.swing.JButton jButton2;
@@ -188,6 +213,6 @@ public class ViewBar extends javax.swing.JInternalFrame {
     private javax.swing.JLabel jLabel3;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTable jTable1;
+    private javax.swing.JTable tabelaLogs;
     // End of variables declaration//GEN-END:variables
 }
