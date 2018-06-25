@@ -3,15 +3,12 @@ package view;
 import assets.Bartender;
 import assets.Cliente;
 import assets.Garcom;
-import java.rmi.registry.LocateRegistry;
-import java.rmi.registry.Registry;
-import java.rmi.server.UnicastRemoteObject;
+import assets.Bebida;
+import assets.MenuBebida;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
-import server.Bar;
-import server.InterfaceRemotaBar;
 
 /**
  *
@@ -21,8 +18,10 @@ import server.InterfaceRemotaBar;
 public class ViewBar extends javax.swing.JInternalFrame {
     
     private static ViewBar telaAplicacao;
+    private MenuBebida menu;
     
     private ViewBar() {
+        this.menu = new MenuBebida();
         initComponents();
     }
     
@@ -38,21 +37,6 @@ public class ViewBar extends javax.swing.JInternalFrame {
         return telaAplicacao;
     }
     
-    /**
-     * inicia o servidor do Bar
-     */
-    private void iniciaServidor() {
-        try {
-            Bar server = new Bar();
-            InterfaceRemotaBar stub = (InterfaceRemotaBar) UnicastRemoteObject.exportObject(server, 8000);
-            Registry registry = LocateRegistry.createRegistry(8000);
-            registry.bind("Servidor do Bar", stub);
-            JOptionPane.showMessageDialog(null, "Servidor iniciado");
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-    }
-
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
@@ -171,6 +155,7 @@ public class ViewBar extends javax.swing.JInternalFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+        // validações dos campos
         if (this.inputNroClientes.getText().equals("")) {
             JOptionPane.showMessageDialog(rootPane, "Informe o número de clientes");
             return;
@@ -184,22 +169,44 @@ public class ViewBar extends javax.swing.JInternalFrame {
             return;
         }
         
+        // esvazia a tabela para o caso de solicitar uma nova simulação
+        DefaultTableModel tabela = (DefaultTableModel)tabelaLogs.getModel();
+        tabela.setNumRows(0);
+        
         // cria lista de bartenders de acordo com o informado no input
         List<Bartender> bartenders = new ArrayList<>();
         for (int i = 0; i < Integer.parseInt(this.inputNroBartenders.getText()); i++) {
-            bartenders.add(new Bartender("Bartender " + i, (DefaultTableModel)tabelaLogs.getModel()));
+            bartenders.add(new Bartender("Bartender " + i, tabela));
         }
         // cria lista de garçons de acordo com o informado no input
         List<Garcom> garcons = new ArrayList<>();
         for (int i = 0; i < Integer.parseInt(this.inputNroGarcons.getText()); i++) {
-            garcons.add(new Garcom(bartenders, "Garçom " + i, (DefaultTableModel)tabelaLogs.getModel()));
+            garcons.add(new Garcom(bartenders, "Garçom " + i, tabela));
         }
         // cria lista de clientes de acordo com o informado no input
         for (int i = 1; i <= Integer.parseInt(this.inputNroClientes.getText()); i++) {
-            Thread cliente = new Thread(new Cliente(garcons, (DefaultTableModel)tabelaLogs.getModel()), "Cliente" + i);
+            Cliente oCliente = new Cliente(garcons, tabela, this.menu);
+            
+            Thread cliente = new Thread(oCliente, "Cliente" + i);
+            
+            if(oCliente.isVip() == true) {
+//                JOptionPane.showMessageDialog(rootPane, "setou prioridade máxima para " + cliente.getName());
+                cliente.setPriority(Thread.MAX_PRIORITY);
+            }
+            
             cliente.start();
         }
+//        JOptionPane.showMessageDialog(rootPane, String.valueOf(clientes.get(0).getPriority()));
+//        JOptionPane.showMessageDialog(rootPane, String.valueOf(clientes.get(1).getPriority()));
+//        JOptionPane.showMessageDialog(rootPane, String.valueOf(clientes.get(2).getPriority()));
+//        JOptionPane.showMessageDialog(rootPane, String.valueOf(clientes.get(3).getPriority()));
+//        JOptionPane.showMessageDialog(rootPane, String.valueOf(clientes.get(4).getPriority()));
         
+//        clientes.get(0).start();
+//        clientes.get(1).start();
+//        clientes.get(2).start();
+//        clientes.get(3).start();
+//        clientes.get(4).start();
     }//GEN-LAST:event_jButton2ActionPerformed
 
 

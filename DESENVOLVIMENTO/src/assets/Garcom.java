@@ -8,7 +8,7 @@ import javax.swing.table.DefaultTableModel;
 /**
  * @author Mateus Gomes, Gabriel Schenkel e Cristiano A. Flores
  */
-public class Garcom {
+public class Garcom implements MensagensTabela {
     
     private List<Bartender> bartenders;
     private Bartender bartendeEscolhido;
@@ -22,7 +22,7 @@ public class Garcom {
     }
     
     /**
-     * getters e setters
+     * Getters e Setters
      * @return 
      */
     
@@ -35,21 +35,47 @@ public class Garcom {
     }
     
     /**
+     * método na qual é realizado o pedido ao garçom
+     */
+    public void pedirBebida(Coquetel coquetel, String nomeCliente) {
+        synchronized(this) {
+            this.escreverMensagem(nomeCliente + " chamou o garçom " + 
+                                  this.nome + " e pediu uma bebida composta por " + 
+                                  coquetel.getDescricaoCoquetel());
+            
+            this.escreverMensagem(this.nome + " atendendendo " + nomeCliente);
+            
+            this.pegarBebida(coquetel, nomeCliente);
+        }
+    }
+    
+    /**
      * método na qual é realizado o pedido ao bartender 
      * @param bebida
      * @param qtd 
      */
-    public void pegarBebida(String bebida, int qtd) {
-        synchronized(this) {
-            this.bartendeEscolhido = this.escolherBartender();
-            
-            tabelaLogs.addRow(new Object[]{this.nome + " solicitou " + qtd + " doze(s) de " + 
-                                           bebida + " para o "  + this.bartendeEscolhido.getNome()});
-            
-            this.bartendeEscolhido.prepararBebida(bebida, qtd);
-            
-            this.serveBebida(bebida, qtd);
+    private void pegarBebida(Coquetel coquetel, String nomeCliente) {
+        this.bartendeEscolhido = this.escolherBartender();
+
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException ex) {
+            ex.printStackTrace();
         }
+        
+        this.escreverMensagem(this.nome + " solicitou uma bebida composta por " +
+                              coquetel.getDescricaoCoquetel() + " para o "  + 
+                              this.bartendeEscolhido.getNome());
+
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException ex) {
+            ex.printStackTrace();
+        }
+        
+        this.bartendeEscolhido.prepararBebida(coquetel, this.nome);
+
+        this.serveBebida(nomeCliente);
     }
     
     /**
@@ -57,9 +83,8 @@ public class Garcom {
      * @param bebida
      * @param qtd 
      */
-    private void serveBebida(String bebida, int qtd) {
-        tabelaLogs.addRow(new Object[]{this.nome + " serviu " + qtd + " doze(s) de " +
-                                       bebida + " para " + Thread.currentThread().getName()});
+    private void serveBebida(String nomeCliente) {
+        this.escreverMensagem(this.nome + " serviu o coquetel para " + nomeCliente);
     }
     
     /**
@@ -70,6 +95,19 @@ public class Garcom {
         Random random = new Random();
         
         return bartenders.get(random.nextInt(bartenders.size()));
+    }
+
+    /**
+     * método(s) implementado(s) da(s) interface(s)
+     */
+    @Override
+    public void escreverMensagem(String mensagem) {
+        tabelaLogs.addRow(new Object[]{mensagem});
+    }
+    
+    @Override
+    public void escreverMensagem(String mensagem, DefaultTableModel tabela) {
+        tabela.addRow(new Object[]{mensagem});
     }
     
 }

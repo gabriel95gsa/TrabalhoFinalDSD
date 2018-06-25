@@ -1,5 +1,6 @@
 package assets;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import javax.swing.JOptionPane;
@@ -8,15 +9,32 @@ import javax.swing.table.DefaultTableModel;
 /**
  * @author Mateus Gomes, Gabriel Schenkel e Cristiano A. Flores
  */
-public class Cliente implements Runnable {
+public class Cliente implements Runnable, MensagensTabela {
     
+    private String nome;
     private List<Garcom> garcons;
     private Garcom garcomEscolhido;
     private DefaultTableModel tabelaLogs;
+    private MenuBebida menu;
+    private boolean vip;
+    private Random random;
+    private Coquetel coquetel;
 
-    public Cliente(List<Garcom> garcons, DefaultTableModel tabelaLogs) {
+    public Cliente(List<Garcom> garcons, DefaultTableModel tabelaLogs, MenuBebida menu) {
         this.garcons = garcons;
         this.tabelaLogs = tabelaLogs;
+        this.menu = menu;
+        this.random = new Random();
+        // escolhe aleatoriamente se o cliente será vip ou não
+        this.vip = random.nextBoolean();
+    }
+    
+    /**
+     * Getters e Setters
+     * @return 
+     */
+    public boolean isVip() {
+        return vip;
     }
     
     /**
@@ -24,16 +42,22 @@ public class Cliente implements Runnable {
      * @param bebida
      * @param qtd 
      */
-    private void queroBeber(String bebida, int qtd) {
+    private void queroBeber() {
         this.garcomEscolhido = this.escolherGarcom();
         
-        tabelaLogs.addRow(new Object[]{Thread.currentThread().getName() + " pediu " + 
-                                       qtd + " doze(s) de " + bebida + " para o " + 
-                                       this.garcomEscolhido.getNome()});
+        this.escreverMensagem(this.nome + " entrou no bar");
         
-        this.garcomEscolhido.pegarBebida(bebida, qtd);
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException ex) {
+            ex.printStackTrace();
+        }
         
-        this.bebe(bebida, qtd);
+        this.escolherCoquetel();
+        
+        this.garcomEscolhido.pedirBebida(this.coquetel, this.nome);
+        
+        this.bebe();
     }
     
     /**
@@ -41,10 +65,11 @@ public class Cliente implements Runnable {
      * @param bebida
      * @param qtd 
      */
-    private void bebe(String bebida, int qtd) {
-        tabelaLogs.addRow(new Object[]{Thread.currentThread().getName() + 
-                                       " está bebendo sua(s) " + qtd + " doze(s) de " + 
-                                       bebida});
+    private void bebe() {
+        String mensagem = this.nome + " bebeu sua bebida composta por " + 
+                          this.coquetel.getDescricaoCoquetel();
+        
+        this.escreverMensagem(mensagem);
     }
     
     /**
@@ -52,14 +77,48 @@ public class Cliente implements Runnable {
      * @return 
      */
     private Garcom escolherGarcom() {
-        Random random = new Random();
+        return garcons.get(this.random.nextInt(garcons.size()));
+    }
+    
+    /**
+     * método que escolhe a(s) bebida(s) que o cliente pedirá
+     * cliente poderá pedir até 3 bebidas para o coquetel
+     * @return 
+     */
+    private void escolherCoquetel() {
+        int nroBebidas = (this.random.nextInt(3)) + 1;
         
-        return garcons.get(random.nextInt(garcons.size()));
+        this.coquetel = new Coquetel();
+        
+        for (int i = 0; i < nroBebidas; i++) {
+            // escolhe uma bebida aleatoriamente do menu
+            this.coquetel.addBebida(this.menu.getBebidas().get(this.random.nextInt(this.menu.getNroBebidasMenu())));
+        }
+    }
+
+    /**
+     * método(s) implementado(s) da(s) interface(s)
+     */
+    @Override
+    public void run() {
+        this.nome = Thread.currentThread().getName();
+        this.queroBeber();
     }
 
     @Override
-    public void run() {
-        this.queroBeber("cerveja skol", 2);
+    public void escreverMensagem(String mensagem) {
+        if(this.vip == true) {
+            mensagem =  "*VIP* " + mensagem;
+        }
+        tabelaLogs.addRow(new Object[]{mensagem});
+    }
+    
+    @Override
+    public void escreverMensagem(String mensagem, DefaultTableModel tabela) {
+        if(this.vip == true) {
+            mensagem =  "*VIP* " + mensagem;
+        }
+        tabela.addRow(new Object[]{mensagem});
     }
     
 }
