@@ -3,14 +3,13 @@ package dao;
 import dao.exceptions.NonexistentEntityException;
 import model.Log;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Query;
 import javax.persistence.EntityNotFoundException;
 import javax.persistence.Persistence;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Root;
 
 /**
  * @author Mateus Gomes, Gabriel Schenkel e Cristiano A. Flores
@@ -84,30 +83,19 @@ public class DAOLog implements Serializable {
             }
         }
     }
-
-//    public List<Log> findLogEntities() {
-//        return findLogEntities(true, -1, -1);
-//    }
-
-//    public List<Log> findLogEntities(int maxResults, int firstResult) {
-//        return findLogEntities(false, maxResults, firstResult);
-//    }
-
-//    private List<Log> findLogEntities(boolean all, int maxResults, int firstResult) {
-//        EntityManager em = getEntityManager();
-//        try {
-//            CriteriaQuery cq = em.getCriteriaBuilder().createQuery();
-//            cq.select(cq.from(Log.class));
-//            Query q = em.createQuery(cq);
-//            if (!all) {
-//                q.setMaxResults(maxResults);
-//                q.setFirstResult(firstResult);
-//            }
-//            return q.getResultList();
-//        } finally {
-//            em.close();
-//        }
-//    }
+    
+    public void excluirTodosLogs() {
+        Long id = null;
+        EntityManager em = getEntityManager();
+        em.getTransaction().begin();
+        List<Log> listaEncontrado = null;
+        Query consulta = em.createQuery("select l from Log l");
+        List<Log> listaLog = consulta.getResultList();
+        for (Log oLog : listaLog) {
+            em.remove(oLog);
+        }
+        em.getTransaction().commit();
+    }
 
     public Log findLog(Long id) {
         EntityManager em = getEntityManager();
@@ -117,19 +105,6 @@ public class DAOLog implements Serializable {
             em.close();
         }
     }
-
-//    public int getLogCount() {
-//        EntityManager em = getEntityManager();
-//        try {
-//            CriteriaQuery cq = em.getCriteriaBuilder().createQuery();
-//            Root<Log> rt = cq.from(Log.class);
-//            cq.select(em.getCriteriaBuilder().count(rt));
-//            Query q = em.createQuery(cq);
-//            return ((Long) q.getSingleResult()).intValue();
-//        } finally {
-//            em.close();
-//        }
-//    }
     
     public Long retornaLogID(String descricao) {
         Long id = null;
@@ -147,10 +122,14 @@ public class DAOLog implements Serializable {
         return id;
     }
     
-    public List<Log> retornaListaLog() {
+    public List<String> retornaListaLog() {
         EntityManager em = getEntityManager();
-        Query consulta = em.createQuery("select l from Log l");
-        List<Log> listaLog = consulta.getResultList();
+        Query consulta = em.createQuery("select l from Log l order by l.id");
+        List<Log> listaConsulta = consulta.getResultList();
+        List<String> listaLog = new ArrayList<>();
+        for (Log oLog : listaConsulta) {
+            listaLog.add(oLog.getDescricao());
+        }
         return listaLog;
     }
 

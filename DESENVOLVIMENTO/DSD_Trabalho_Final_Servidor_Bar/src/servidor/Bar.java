@@ -33,5 +33,15 @@ public class Bar implements InterfaceRemotaBar {
     public void retiraDoseBebida(String bebida) throws RemoteException {
         this.repositorioBD.retiraDoseBebida(bebida);
     }
+
+    @Override
+    public void excluirTodosLogs() {
+        this.repositorioBD.excluirTodosLogs();
+    }
+
+    @Override
+    public List<String> getListaLogs() {
+        return this.repositorioBD.getListaLogs();
+    }
     
 }

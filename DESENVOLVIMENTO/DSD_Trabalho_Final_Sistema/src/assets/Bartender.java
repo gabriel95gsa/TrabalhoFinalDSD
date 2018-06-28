@@ -1,6 +1,7 @@
 package assets;
 
 import java.rmi.Naming;
+import java.rmi.RemoteException;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 import servidor.InterfaceRemotaBar;
@@ -11,17 +12,14 @@ import servidor.InterfaceRemotaBar;
 public class Bartender implements MensagensTabela {
     
     private String nome;
-    private DefaultTableModel tabelaLogs;
     private InterfaceRemotaBar repositorioBar;
 
-    public Bartender(String nome, DefaultTableModel tabelaLogs) {
+    public Bartender(String nome) {
         this.nome = nome;
-        this.tabelaLogs = tabelaLogs;
         
         // estabelece a conexão com o servidor do bar
         try {
             this.repositorioBar = (InterfaceRemotaBar) Naming.lookup("rmi://0.0.0.0:443/ServidorBar");
-            JOptionPane.showMessageDialog(null, this.repositorioBar.getDisponibilidadeBebida("teste"));
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -40,11 +38,13 @@ public class Bartender implements MensagensTabela {
     }
 
     /**
-     * método na qual a bebida é preparada com os ingredientes
-     * @param bebida
-     * @param qtd 
+     * método na qual o coquetel é preparado com os ingredientes
+     * @param coquetel
+     * @param nomeGarcom
+     * @return
+     * @throws RemoteException 
      */
-    public void prepararBebida(Coquetel coquetel, String nomeGarcom) {
+    public boolean prepararBebida(Coquetel coquetel, String nomeGarcom) throws RemoteException {
         this.escreverMensagem(this.nome + " verificará se há ingredientes para a solicitação do garçom " + nomeGarcom);
         
         try {
@@ -53,7 +53,21 @@ public class Bartender implements MensagensTabela {
             ex.printStackTrace();
         }
         
-        this.escreverMensagem(this.nome + " preparou a bebida composta por " + coquetel.getDescricaoCoquetel());
+        // Verifica as disponibilidade das bebidas do coquetel
+        for (int i = 0; i < coquetel.getComposicao().size(); i++) {
+            if (this.repositorioBar.getDisponibilidadeBebida(coquetel.getComposicao().get(i).getDescricao()) == false) {
+                this.escreverMensagem(this.nome + " verificou e informou que não há mais doses da bebida " + 
+                                      coquetel.getComposicao().get(i).getDescricao());
+                return false;
+            }
+        }
+        
+        // Se todas as bebidas estão disponíveis, é decrementado o valor de doses
+        for (int i = 0; i < coquetel.getComposicao().size(); i++) {
+            this.repositorioBar.retiraDoseBebida(coquetel.getComposicao().get(i).getDescricao());
+        }
+        
+        this.escreverMensagem(this.nome + " preparou o coquetel composto de " + coquetel.getDescricaoCoquetel());
 
         try {
             Thread.sleep(1000);
@@ -62,15 +76,17 @@ public class Bartender implements MensagensTabela {
         }
         
         this.entregaBebida(coquetel, nomeGarcom);
+        
+        return true;
     }
     
     /**
-     * método na qual a bebida é entregue para o garçom
-     * @param bebida
-     * @param qtd 
+     * método na qual o coquetel é entregue para o garçom
+     * @param coquetel
+     * @param nomeGarcom 
      */
     private void entregaBebida(Coquetel coquetel, String nomeGarcom) {
-        this.escreverMensagem(this.nome + " entregou a bebida composta por " + 
+        this.escreverMensagem(this.nome + " entregou o coquetel composto de " + 
                               coquetel.getDescricaoCoquetel() + " para o garçom " + nomeGarcom);
     }
 
@@ -79,12 +95,20 @@ public class Bartender implements MensagensTabela {
      */
     @Override
     public void escreverMensagem(String mensagem) {
-        tabelaLogs.addRow(new Object[]{mensagem});
+        try {
+            this.repositorioBar.gravarLog(mensagem);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
 
     @Override
     public void escreverMensagem(String mensagem, DefaultTableModel tabela) {
-        tabela.addRow(new Object[]{mensagem});
+        try {
+            this.repositorioBar.gravarLog(mensagem);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
     
 }

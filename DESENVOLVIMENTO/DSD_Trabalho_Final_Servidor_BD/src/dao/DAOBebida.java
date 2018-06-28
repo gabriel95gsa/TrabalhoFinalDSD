@@ -9,8 +9,6 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.Query;
 import javax.persistence.EntityNotFoundException;
 import javax.persistence.Persistence;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Root;
 
 /**
  * @author Mateus Gomes, Gabriel Schenkel e Cristiano A. Flores
@@ -85,30 +83,6 @@ public class DAOBebida implements Serializable {
         }
     }
 
-//    public List<Bebida> findBebidaEntities() {
-//        return findBebidaEntities(true, -1, -1);
-//    }
-
-//    public List<Bebida> findBebidaEntities(int maxResults, int firstResult) {
-//        return findBebidaEntities(false, maxResults, firstResult);
-//    }
-
-//    private List<Bebida> findBebidaEntities(boolean all, int maxResults, int firstResult) {
-//        EntityManager em = getEntityManager();
-//        try {
-//            CriteriaQuery cq = em.getCriteriaBuilder().createQuery();
-//            cq.select(cq.from(Bebida.class));
-//            Query q = em.createQuery(cq);
-//            if (!all) {
-//                q.setMaxResults(maxResults);
-//                q.setFirstResult(firstResult);
-//            }
-//            return q.getResultList();
-//        } finally {
-//            em.close();
-//        }
-//    }
-
     public Bebida findBebida(Long id) {
         EntityManager em = getEntityManager();
         try {
@@ -117,19 +91,6 @@ public class DAOBebida implements Serializable {
             em.close();
         }
     }
-
-//    public int getBebidaCount() {
-//        EntityManager em = getEntityManager();
-//        try {
-//            CriteriaQuery cq = em.getCriteriaBuilder().createQuery();
-//            Root<Bebida> rt = cq.from(Bebida.class);
-//            cq.select(em.getCriteriaBuilder().count(rt));
-//            Query q = em.createQuery(cq);
-//            return ((Long) q.getSingleResult()).intValue();
-//        } finally {
-//            em.close();
-//        }
-//    }
 
     public Long retornaBebidaID(String descricao) {
         Long id = null;
@@ -150,12 +111,17 @@ public class DAOBebida implements Serializable {
     public Bebida retornaBebida(String descricao) {
         EntityManager em = getEntityManager();
         List<Bebida> listaEncontrado = null;
-        Query consulta = em.createQuery("select b from Bebida b where b.descricao = " + descricao);
+        Query consulta = em.createQuery("select b from Bebida b where b.descricao = '" + descricao + "'");
         List<Bebida> listaBebida = consulta.getResultList();
-        Bebida bebida = (Bebida) consulta.getResultList();
+        Bebida bebida = null;
+        for (Bebida oBebida : listaBebida) {
+            if (oBebida.getDescricao().equals(descricao)) {
+                bebida = oBebida;
+            }
+        }
         
         return bebida;
-    } 
+    }
 
     public List<Bebida> retornaListaBebida() {
         EntityManager em = getEntityManager();
@@ -168,7 +134,7 @@ public class DAOBebida implements Serializable {
         int doses = 0;
         EntityManager em = getEntityManager();
         List<Bebida> listaEncontrado = null;
-        Query consulta = em.createQuery("select b from Bebida b");
+        Query consulta = em.createQuery("select b from Bebida b where b.descricao = '" + descricao + "'");
         List<Bebida> listaBebida = consulta.getResultList();
         for (Bebida oBeb : listaBebida) {
             String desc = oBeb.getDescricao();

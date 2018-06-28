@@ -1,10 +1,12 @@
 package assets;
 
-import java.util.ArrayList;
+import java.rmi.Naming;
+import java.rmi.RemoteException;
 import java.util.List;
 import java.util.Random;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
+import servidor.InterfaceRemotaBar;
 
 /**
  * @author Mateus Gomes, Gabriel Schenkel e Cristiano A. Flores
@@ -14,19 +16,28 @@ public class Cliente implements Runnable, MensagensTabela {
     private String nome;
     private List<Garcom> garcons;
     private Garcom garcomEscolhido;
-    private DefaultTableModel tabelaLogs;
     private MenuBebida menu;
     private boolean vip;
     private Random random;
     private Coquetel coquetel;
+    private InterfaceRemotaBar repositorioBar;
+    private int qtdPedidosNegados;
+    private int contNivelBebado;
 
-    public Cliente(List<Garcom> garcons, DefaultTableModel tabelaLogs, MenuBebida menu) {
+    public Cliente(List<Garcom> garcons, MenuBebida menu) {
         this.garcons = garcons;
-        this.tabelaLogs = tabelaLogs;
         this.menu = menu;
         this.random = new Random();
         // escolhe aleatoriamente se o cliente será vip ou não
         this.vip = random.nextBoolean();
+        this.qtdPedidosNegados = 0;
+        this.contNivelBebado = 0;
+        
+        try {
+            this.repositorioBar = (InterfaceRemotaBar) Naming.lookup("rmi://0.0.0.0:443/ServidorBar");
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
     
     /**
@@ -37,39 +48,52 @@ public class Cliente implements Runnable, MensagensTabela {
         return vip;
     }
     
-    /**
-     * método na qual é realizado o pedido para o garçom
-     * @param bebida
-     * @param qtd 
-     */
-    private void queroBeber() {
-        this.garcomEscolhido = this.escolherGarcom();
-        
+    private void entrarNoBar() throws RemoteException {
         this.escreverMensagem(this.nome + " entrou no bar");
         
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException ex) {
-            ex.printStackTrace();
-        }
-        
-        this.escolherCoquetel();
-        
-        this.garcomEscolhido.pedirBebida(this.coquetel, this.nome);
-        
-        this.bebe();
+        this.queroBeber();
     }
     
     /**
-     * método na qual a bebida é consumida
-     * @param bebida
-     * @param qtd 
+     * método na qual é realizado o pedido para o garçom
      */
-    private void bebe() {
-        String mensagem = this.nome + " bebeu sua bebida composta por " + 
-                          this.coquetel.getDescricaoCoquetel();
+    private void queroBeber() throws RemoteException {
+        this.garcomEscolhido = this.escolherGarcom();
         
-        this.escreverMensagem(mensagem);
+        this.escolherCoquetel();
+        
+        if (this.garcomEscolhido.pedirBebida(this.coquetel, this.nome) == true) {
+            this.bebe();
+        } else {
+            this.escreverMensagem(this.nome + " pensará em outro coquetel");
+            
+            this.qtdPedidosNegados++;
+            
+            // Se o cliente tiver 5 pedidos negados, sua prioridade se torna máxima
+            if (this.qtdPedidosNegados >= 5) {
+                Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
+            }
+            
+            this.queroBeber();
+        }
+    }
+    
+    /**
+     * método na qual o coquetel é consumido
+     */
+    private void bebe() throws RemoteException {
+        this.escreverMensagem(this.nome + " bebeu seu coquetel composto de " + 
+                              this.coquetel.getDescricaoCoquetel());
+        
+        // a cada bebida de coquetel o nível aumenta em 2
+        this.contNivelBebado += 2;
+        
+        if (this.contNivelBebado >= 10) {
+            this.escreverMensagem(this.nome + " está bêbado demais e precisa " + 
+                                  " ser conduzido até a saída");
+        } else {
+            this.queroBeber();
+        }
     }
     
     /**
@@ -94,6 +118,9 @@ public class Cliente implements Runnable, MensagensTabela {
             // escolhe uma bebida aleatoriamente do menu
             this.coquetel.addBebida(this.menu.getBebidas().get(this.random.nextInt(this.menu.getNroBebidasMenu())));
         }
+        
+        this.escreverMensagem(this.nome + " olhou o menu na mesa e escolheu um coquetel de " + 
+                              this.coquetel.getDescricaoCoquetel());
     }
 
     /**
@@ -102,7 +129,11 @@ public class Cliente implements Runnable, MensagensTabela {
     @Override
     public void run() {
         this.nome = Thread.currentThread().getName();
-        this.queroBeber();
+        try {
+            this.entrarNoBar();
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
     }
 
     @Override
@@ -110,7 +141,11 @@ public class Cliente implements Runnable, MensagensTabela {
         if(this.vip == true) {
             mensagem =  "*VIP* " + mensagem;
         }
-        tabelaLogs.addRow(new Object[]{mensagem});
+        try {
+            this.repositorioBar.gravarLog(mensagem);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
     
     @Override
@@ -118,7 +153,11 @@ public class Cliente implements Runnable, MensagensTabela {
         if(this.vip == true) {
             mensagem =  "*VIP* " + mensagem;
         }
-        tabela.addRow(new Object[]{mensagem});
+        try {
+            this.repositorioBar.gravarLog(mensagem);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
     
 }

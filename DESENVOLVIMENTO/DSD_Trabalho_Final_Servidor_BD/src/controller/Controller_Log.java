@@ -69,4 +69,12 @@ public class Controller_Log {
     public List retornaListaLog() {
         return logDAO.retornaListaLog();
     }
+    
+    /**
+     * MÉTODO QUE EXCLUI TODOS OS REGISTROS DE LOG
+     */
+    public void excluirTodosLogs() {
+        logDAO.excluirTodosLogs();
+    }
+    
 }

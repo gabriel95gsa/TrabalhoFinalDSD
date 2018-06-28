@@ -47,7 +47,9 @@ public class Controller_Bebida {
     public void diminuiQtdDosesDisponiveis(String nome) {
         Bebida bebida = bebidaDAO.retornaBebida(nome);
         
-        bebida.setDoses(bebida.getDoses() - 1);
+        int qtdAtualizada = bebida.getDoses() - 1;
+        
+        bebida.setDoses(qtdAtualizada);
         
         try {
             bebidaDAO.edit(bebida);

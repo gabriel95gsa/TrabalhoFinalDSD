@@ -3,7 +3,6 @@ package view;
 import assets.Bartender;
 import assets.Cliente;
 import assets.Garcom;
-import assets.Bebida;
 import assets.MenuBebida;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,7 +47,7 @@ public class ViewBar extends javax.swing.JInternalFrame {
         inputNroGarcons = new javax.swing.JTextField();
         jLabel3 = new javax.swing.JLabel();
         inputNroClientes = new javax.swing.JTextField();
-        jButton2 = new javax.swing.JButton();
+        botaoComecar = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         tabelaLogs = new javax.swing.JTable();
 
@@ -61,10 +60,10 @@ public class ViewBar extends javax.swing.JInternalFrame {
 
         jLabel3.setText("Nº de bartenders");
 
-        jButton2.setText("Começar");
-        jButton2.addActionListener(new java.awt.event.ActionListener() {
+        botaoComecar.setText("Começar");
+        botaoComecar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton2ActionPerformed(evt);
+                botaoComecarActionPerformed(evt);
             }
         });
 
@@ -110,10 +109,10 @@ public class ViewBar extends javax.swing.JInternalFrame {
                             .addComponent(inputNroClientes)
                             .addComponent(inputNroBartenders)
                             .addComponent(inputNroGarcons, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                    .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 171, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(64, 64, 64)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 574, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(44, Short.MAX_VALUE))
+                    .addComponent(botaoComecar, javax.swing.GroupLayout.PREFERRED_SIZE, 171, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 649, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(15, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -133,7 +132,7 @@ public class ViewBar extends javax.swing.JInternalFrame {
                             .addComponent(jLabel3)
                             .addComponent(inputNroBartenders, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGap(81, 81, 81)
-                        .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 74, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(botaoComecar, javax.swing.GroupLayout.PREFERRED_SIZE, 74, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGap(22, 22, 22)
                         .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 479, javax.swing.GroupLayout.PREFERRED_SIZE)))
@@ -154,7 +153,7 @@ public class ViewBar extends javax.swing.JInternalFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+    private void botaoComecarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_botaoComecarActionPerformed
         // validações dos campos
         if (this.inputNroClientes.getText().equals("")) {
             JOptionPane.showMessageDialog(rootPane, "Informe o número de clientes");
@@ -169,23 +168,25 @@ public class ViewBar extends javax.swing.JInternalFrame {
             return;
         }
         
-        // esvazia a tabela para o caso de solicitar uma nova simulação
-        DefaultTableModel tabela = (DefaultTableModel)tabelaLogs.getModel();
-        tabela.setNumRows(0);
+        // cria objeto para manipular a tabela de logs e a sua thread
+        TabelaLogs t = new TabelaLogs((DefaultTableModel)tabelaLogs.getModel(), botaoComecar);
+        Thread threadTabela = new Thread(t);
+        threadTabela.setDaemon(true);
+        threadTabela.start();
         
         // cria lista de bartenders de acordo com o informado no input
         List<Bartender> bartenders = new ArrayList<>();
         for (int i = 0; i < Integer.parseInt(this.inputNroBartenders.getText()); i++) {
-            bartenders.add(new Bartender("Bartender " + i, tabela));
+            bartenders.add(new Bartender("Bartender " + i));
         }
         // cria lista de garçons de acordo com o informado no input
         List<Garcom> garcons = new ArrayList<>();
         for (int i = 0; i < Integer.parseInt(this.inputNroGarcons.getText()); i++) {
-            garcons.add(new Garcom(bartenders, "Garçom " + i, tabela));
+            garcons.add(new Garcom(bartenders, "Garçom " + i));
         }
         // cria lista de clientes de acordo com o informado no input
         for (int i = 1; i <= Integer.parseInt(this.inputNroClientes.getText()); i++) {
-            Cliente oCliente = new Cliente(garcons, tabela, this.menu);
+            Cliente oCliente = new Cliente(garcons, this.menu);
             
             Thread cliente = new Thread(oCliente, "Cliente" + i);
             
@@ -195,25 +196,14 @@ public class ViewBar extends javax.swing.JInternalFrame {
             
             cliente.start();
         }
-//        JOptionPane.showMessageDialog(rootPane, String.valueOf(clientes.get(0).getPriority()));
-//        JOptionPane.showMessageDialog(rootPane, String.valueOf(clientes.get(1).getPriority()));
-//        JOptionPane.showMessageDialog(rootPane, String.valueOf(clientes.get(2).getPriority()));
-//        JOptionPane.showMessageDialog(rootPane, String.valueOf(clientes.get(3).getPriority()));
-//        JOptionPane.showMessageDialog(rootPane, String.valueOf(clientes.get(4).getPriority()));
-        
-//        clientes.get(0).start();
-//        clientes.get(1).start();
-//        clientes.get(2).start();
-//        clientes.get(3).start();
-//        clientes.get(4).start();
-    }//GEN-LAST:event_jButton2ActionPerformed
+    }//GEN-LAST:event_botaoComecarActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton botaoComecar;
     private javax.swing.JTextField inputNroBartenders;
     private javax.swing.JTextField inputNroClientes;
     private javax.swing.JTextField inputNroGarcons;
-    private javax.swing.JButton jButton2;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;

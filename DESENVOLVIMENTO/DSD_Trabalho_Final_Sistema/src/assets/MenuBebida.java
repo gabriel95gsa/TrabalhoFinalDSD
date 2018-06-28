@@ -31,10 +31,13 @@ public class MenuBebida {
         bebidas.add(new Bebida("Absolut"));
         bebidas.add(new Bebida("Grey Goose"));
         bebidas.add(new Bebida("Belvedere"));
-        bebidas.add(new Bebida("Belvedere"));
         bebidas.add(new Bebida("Finlandia"));
         bebidas.add(new Bebida("Red Bull"));
         bebidas.add(new Bebida("TNT"));
+        bebidas.add(new Bebida("Guaraná Antarctica"));
+        bebidas.add(new Bebida("Coca Cola"));
+        bebidas.add(new Bebida("Pepsi"));
+        bebidas.add(new Bebida("Schweppes"));
     }
 
     /**

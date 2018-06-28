@@ -2,6 +2,7 @@ package servidor;
 
 import java.rmi.Remote;
 import java.rmi.RemoteException;
+import java.util.List;
 
 /**
  *
@@ -14,5 +15,9 @@ public interface InterfaceRemotaBar extends Remote {
     public boolean getDisponibilidadeBebida(String bebida) throws RemoteException;
     
     public void retiraDoseBebida(String bebida)  throws RemoteException;
+    
+    public void excluirTodosLogs() throws RemoteException;
+    
+    public List<String> getListaLogs() throws RemoteException;
     
 }
